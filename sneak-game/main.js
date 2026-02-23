@@ -328,11 +328,46 @@ document.addEventListener('DOMContentLoaded', () => {
   requestAnimationFrame(gameLoop);
 
   // expose core controls to global so UI script can call them
-  // (insert these lines before the end of DOMContentLoaded handler)
   window.startGame = startGame;
   window.resetGame = resetGame;
   window.gameOver = gameOver;
   window.updateScoreUI = updateScore;
+
+  // If UI dispatches 'requestStart' (poll fallback), start the game here
+  document.addEventListener('requestStart', () => {
+    if (typeof window.startGame === 'function') {
+      try {
+        // prefer to reset first if available (some game logic expects that)
+        if (typeof window.resetGame === 'function') {
+          window.resetGame();
+          console.info('main.js: resetGame() called before start');
+        }
+        window.startGame();
+        console.info('main.js: startGame() (requestStart) invoked');
+      } catch (e) {
+        console.warn('main.js: startGame threw during requestStart', e);
+      }
+    }
+  });
+
+  // Wrap original startGame with a small debug wrapper to ensure attempts from UI are visible
+  (function wrapStart() {
+    const orig = window.startGame;
+    if (typeof orig !== 'function') return;
+    window.startGame = function(...args) {
+      console.info('main.js: startGame wrapper called', args);
+      try {
+        // reset first if needed
+        if (typeof window.resetGame === 'function') {
+          try { window.resetGame(); } catch (e) { console.warn('main.js: resetGame threw in wrapper', e); }
+        }
+        return orig.apply(this, args);
+      } catch (err) {
+        console.error('main.js: startGame (wrapper) error', err);
+      }
+    };
+  })();
+
 });
 
 // Add this after your DOMContentLoaded initialization so elements exist:

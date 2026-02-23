@@ -81,7 +81,31 @@ document.addEventListener('DOMContentLoaded', () => {
     mainMenu && mainMenu.classList.add('hidden');
     if (attractMenu) { attractMenu.classList.remove('hidden'); window.addEventListener('keydown', onKeyNav); }
     const canvas = document.getElementById('game-canvas'); if (canvas) canvas.focus();
+    attemptStartGame();
   });
+
+  // Try to call the real game start functions; poll a few times and emit a requestStart event as fallback
+  function attemptStartGame(attempt = 0) {
+   const maxAttempts = 20;
+   // prefer explicit exported startGame
+   if (typeof window.startGame === 'function') {
+     try { window.startGame(); console.info('UI: window.startGame() called'); } catch (e) { console.warn('UI: startGame threw', e); }
+     return;
+   }
+   // try reset+start if available
+   if (typeof window.resetGame === 'function' && typeof window.startGame === 'function') {
+     try { window.resetGame(); window.startGame(); console.info('UI: resetGame() + startGame() called'); } catch (e) { console.warn('UI: reset/resetGame threw', e); }
+     return;
+   }
+   // dispatch requestStart so main.js can listen if desired
+   document.dispatchEvent(new CustomEvent('requestStart'));
+   if (attempt < maxAttempts) {
+     setTimeout(() => attemptStartGame(attempt + 1), 250);
+     if (attempt === 0) console.info('UI: waiting for startGame to become available...');
+   } else {
+     console.warn('UI: startGame not available after polling; check main.js export order.');
+   }
+ }
 
   safeOn(menuHighBtn, 'click', () => alert('High scores — placeholder'));
   safeOn(menuCreditsBtn, 'click', () => alert('Credits — built with Canvas + JS'));
@@ -126,7 +150,7 @@ document.addEventListener('DOMContentLoaded', () => {
     const txt = sel.textContent.trim();
     if (txt === 'START GAME') {
       hideMenu();
-      if (typeof window.startGame === 'function') window.startGame();
+      attemptStartGame();
     } else if (txt === 'HIGH SCORES') {
       alert('High scores — placeholder');
     } else if (txt === 'CREDITS') {
