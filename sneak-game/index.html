@@ -1,0 +1,82 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Neon Drift — Bored Arcade</title>
+
+  <!-- Pixel font -->
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="src/css/styles.css">
+</head>
+<body>
+  <!-- START MENU (full page before entering cabinet) -->
+  <div id="main-menu" class="main-menu">
+    <div class="mm-card">
+      <h1 class="mm-title">NEON DRIFT: RETRO EDITION</h1>
+      <div class="mm-sub">PRESS START</div>
+      <div class="mm-actions">
+        <button id="menu-start" class="mm-btn">START GAME</button>
+        <button id="menu-highscores" class="mm-btn ghost">HIGH SCORES</button>
+        <button id="menu-credits" class="mm-btn ghost">CREDITS</button>
+      </div>
+      <div class="mm-footer">Use Arrow Keys / Enter</div>
+    </div>
+  </div>
+
+  <div class="arcade-wrap">
+    <div class="arcade-frame">
+      <header class="arcade-header">
+        <div class="title-wrap">
+          <h1 class="arcade-title">NEON DRIFT: RETRO EDITION</h1>
+        </div>
+        <div class="status-left">
+          <div class="power-indicator"><span class="dot"></span> 1P</div>
+        </div>
+      </header>
+
+      <div class="arcade-screen" id="arcade-screen" tabindex="0">
+        <div class="crt-bezel">
+          <canvas id="game-canvas" width="640" height="640"></canvas>
+
+          <div class="scanlines" aria-hidden="true"></div>
+
+          <!-- Attract/Insert coin overlay -->
+          <div id="attract-overlay" class="attract-overlay">
+            <div class="attract-title">INSERT COIN TO START</div>
+            <ul id="attract-menu" class="attract-menu hidden" role="menu">
+              <li data-index="0" class="menu-item selected">START GAME</li>
+              <li data-index="1" class="menu-item">HIGH SCORES</li>
+              <li data-index="2" class="menu-item">CREDITS</li>
+            </ul>
+          </div>
+
+          <!-- in-screen game-over -->
+          <div id="gameover-screen" class="screen-overlay hidden" aria-hidden="true">
+            <div class="gameover-body">
+              <div class="go-score" id="go-score">0</div>
+              <div class="hi-score">HI-SCORE: <span id="hi-score">0</span></div>
+              <button id="go-retry" class="btn-arcade reset-large">RETRY</button>
+            </div>
+          </div>
+
+          <div id="tap-overlay" class="tap-overlay">TAP TO PLAY</div>
+        </div>
+      </div>
+
+      <footer class="arcade-footer">
+        <div class="footer-left">
+          <button id="reset-button" class="btn-arcade reset">RESET</button>
+        </div>
+        <div class="footer-right">
+          <div class="version">v1.0</div>
+        </div>
+      </footer>
+    </div>
+  </div>
+
+  <script src="src/js/main.js"></script>
+  <script src="src/js/ui.js"></script>
+</body>
+</html>

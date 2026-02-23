@@ -1,0 +1,23 @@
+{
+  "name": "sneak-game",
+  "version": "1.0.0",
+  "description": "A sneak game built with JavaScript, HTML, and CSS.",
+  "main": "src/js/main.js",
+  "scripts": {
+    "start": "live-server",
+    "test": "jest"
+  },
+  "keywords": [
+    "game",
+    "javascript",
+    "html",
+    "css"
+  ],
+  "author": "Your Name",
+  "license": "MIT",
+  "dependencies": {},
+  "devDependencies": {
+    "jest": "^27.0.0",
+    "live-server": "^1.2.1"
+  }
+}

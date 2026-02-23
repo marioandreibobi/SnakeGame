@@ -1,0 +1,100 @@
+/* Retro 8-bit Arcade (Bored Arcade) */
+@import url('https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap');
+
+:root{
+  --bg:#1a1a1a;
+  --frame-outer:#0f0f10;
+  --frame-inner:#2b2b2b;
+  --screen-edge:#0b0b0b;
+  --retro-cyan:#00d1ff;
+  --retro-red:#c00000;
+  --text:#e6ffff;
+  --bezel-padding:18px;
+  --glass:#111213;
+}
+
+/* base */
+*{box-sizing:border-box}
+html,body{height:100%;margin:0;background:var(--bg);font-family:'Press Start 2P', monospace;color:var(--text);-webkit-font-smoothing:none;}
+
+/* layout */
+.arcade-wrap{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:28px}
+.arcade-frame{width:800px;max-width:96%;border-radius:14px;padding:16px;background:linear-gradient(180deg,var(--frame-inner),#0b0b0b);border:6px solid var(--frame-outer);box-shadow:0 18px 0 rgba(0,0,0,0.6);display:flex;flex-direction:column;gap:12px}
+
+/* header */
+.arcade-header{display:flex;justify-content:space-between;align-items:center;padding:8px 10px;border-bottom:6px solid #000;border-radius:8px 8px 0 0}
+.arcade-title{margin:0;color:var(--retro-cyan);text-shadow:0 0 8px rgba(0,209,255,0.14), 0 0 18px rgba(0,209,255,0.06);font-size:14px}
+.status-left{font-size:10px;color:#bfefff;display:flex;align-items:center;gap:10px}
+.power-indicator{display:flex;align-items:center;gap:6px}
+.power-indicator .dot{width:10px;height:10px;border-radius:2px;background:#35c76a;box-shadow:0 0 6px rgba(53,199,106,0.18);display:inline-block}
+
+/* screen bezel */
+.arcade-screen{display:flex;justify-content:center;align-items:center;padding:12px}
+.crt-bezel{width:660px;max-width:100%;background:linear-gradient(180deg,#0b0b0e,#020202);border-radius:12px;padding:calc(var(--bezel-padding));box-shadow:inset 0 40px 60px rgba(0,0,0,0.85), inset 0 -10px 30px rgba(0,0,0,0.6);border:8px solid var(--screen-edge);position:relative;overflow:hidden;display:flex;align-items:center;justify-content:center}
+
+/* canvas */
+#game-canvas{display:block;background:#050606;width:100%;height:auto;border-radius:6px;box-shadow:inset 0 0 40px rgba(0,0,0,0.6);image-rendering:pixelated;max-height:640px}
+
+/* scanlines — pointer-events none for performance */
+.scanlines{position:absolute;inset:calc(var(--bezel-padding));pointer-events:none;border-radius:6px;
+  background-image:repeating-linear-gradient(to bottom,
+    rgba(0,0,0,0) 0px, rgba(0,0,0,0) 1px,
+    rgba(0,0,0,0.06) 2px, rgba(0,0,0,0.06) 3px);
+  mix-blend-mode:multiply;opacity:0.55;}
+
+/* slight chromatic edge */
+.crt-bezel::before{content:"";position:absolute;inset:calc(var(--bezel-padding));border-radius:6px;pointer-events:none;
+  box-shadow:0 0 18px rgba(0,208,255,0.02), 0 0 8px rgba(255,0,30,0.01) inset;}
+
+/* attract overlay / menu */
+.attract-overlay{position:absolute;inset:calc(var(--bezel-padding));display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none}
+.attract-title{color:var(--retro-cyan);font-size:20px;padding:6px 12px;text-shadow:0 0 10px rgba(0,209,255,0.12);animation:flash 1.2s linear infinite}
+@keyframes flash{0%,50%,100%{opacity:1}25%,75%{opacity:0.15}}
+.attract-menu{list-style:none;padding:0;margin-top:14px;pointer-events:auto}
+.attract-menu.hidden{display:none}
+.menu-item{padding:10px 18px;background:rgba(0,0,0,0.6);border:3px solid #000;margin:6px 0;cursor:default;color:var(--text)}
+.menu-item.selected{outline:3px solid var(--retro-cyan);box-shadow:0 8px 0 rgba(0,0,0,0.6);}
+
+/* tap overlay (small) */
+.tap-overlay{position:absolute;left:50%;top:18px;transform:translateX(-50%);font-size:10px;color:var(--retro-cyan);pointer-events:none;text-shadow:0 0 8px rgba(0,209,255,0.12)}
+
+/* game over screen inside */
+.screen-overlay{position:absolute;inset:calc(var(--bezel-padding));display:flex;align-items:center;justify-content:center;pointer-events:auto}
+.screen-overlay.hidden{display:none}
+.gameover-body{background:linear-gradient(180deg, rgba(0,0,0,0.8), rgba(0,0,0,0.6));padding:18px;border-radius:6px;border:4px solid #000;display:flex;flex-direction:column;align-items:center;gap:10px}
+.go-score{font-size:44px;color:var(--text);letter-spacing:2px}
+.hi-score{font-size:10px;color:var(--retro-cyan);text-shadow:0 0 8px rgba(0,209,255,0.12)}
+
+/* footer / buttons */
+.arcade-footer{display:flex;justify-content:space-between;align-items:center;padding:8px 6px;border-top:6px solid #000;border-radius:0 0 8px 8px}
+.btn-arcade{display:inline-block;padding:10px 16px;font-size:10px;border-radius:4px;border:5px solid #000;background:#222;color:var(--text);box-shadow:0 10px 0 #000;cursor:pointer;user-select:none;transition:transform .06s ease}
+.btn-arcade:active{transform:translateY(8px);box-shadow:none}
+.btn-arcade.reset{background:var(--retro-red);border-color:#700000;color:#fff;font-weight:700}
+.reset-large{padding:12px 22px;font-size:12px;border-width:6px;}
+
+/* small */
+.version{font-size:9px;color:#9fbfcf}
+@media (max-width:720px){.arcade-frame{width:94%}.go-score{font-size:30px}}
+
+/* MAIN MENU (full-screen) */
+.main-menu{
+  position:fixed;inset:0;display:flex;align-items:center;justify-content:center;
+  background:linear-gradient(180deg, rgba(0,0,0,0.85), rgba(0,0,0,0.95));z-index:9999;
+  pointer-events:auto;
+}
+.main-menu .mm-card{
+  width:min(720px,92%);padding:28px;border-radius:10px;background:#0f0f10;border:6px solid #070707;
+  box-shadow:0 12px 0 rgba(0,0,0,0.6), inset 0 2px 0 rgba(255,255,255,0.02);
+  text-align:center;
+}
+.mm-title{font-family:'Press Start 2P',monospace;color:var(--retro-cyan);font-size:20px;margin:6px 0 10px;text-shadow:0 1px 8px rgba(0,209,255,0.12)}
+.mm-sub{color:#cfefff;font-size:11px;margin-bottom:18px}
+.mm-actions{display:flex;flex-direction:column;gap:10px;align-items:center}
+.mm-btn{font-family:'Press Start 2P',monospace;padding:10px 18px;background:#111;border:4px solid #000;color:var(--text);cursor:pointer;box-shadow:0 8px 0 #000}
+.mm-btn:active{transform:translateY(6px);box-shadow:none}
+.mm-btn.ghost{background:transparent;border:3px dashed rgba(255,255,255,0.03);color:var(--retro-cyan)}
+.mm-footer{margin-top:10px;color:#9fbfcf;font-size:10px}
+
+/* ensure attract-overlay inside CRT is hidden by default so it won't show "INSERT COIN" */
+.attract-overlay{pointer-events:none}
+.attract-overlay .attract-title{display:none}
