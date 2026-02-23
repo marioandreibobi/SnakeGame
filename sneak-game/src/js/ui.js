@@ -80,41 +80,136 @@
       window.removeEventListener('keydown', onKeyNav);
     }
 
-    // UI wiring
+    // remove any old gameover overlay element that may exist
+    (function cleanupOldGameover(){
+      const old = document.getElementById('gameover-screen');
+      if (old) old.parentElement && old.parentElement.removeChild(old);
+    })();
+
+    // create a simple custom game-over overlay (hidden until shown)
+    function createGameOverOverlay(){
+      if (document.getElementById('custom-gameover')) return;
+      const ov = document.createElement('div');
+      ov.id = 'custom-gameover';
+      ov.style.position = 'fixed';
+      ov.style.left = '0';
+      ov.style.top = '0';
+      ov.style.width = '100%';
+      ov.style.height = '100%';
+      ov.style.display = 'flex';
+      ov.style.alignItems = 'center';
+      ov.style.justifyContent = 'center';
+      ov.style.pointerEvents = 'none';
+      ov.style.zIndex = '9999';
+
+      const card = document.createElement('div');
+      card.style.pointerEvents = 'auto';
+      card.style.minWidth = '220px';
+      card.style.background = 'rgba(10,14,16,0.95)';
+      card.style.border = '2px solid rgba(255,255,255,0.08)';
+      card.style.padding = '18px';
+      card.style.borderRadius = '8px';
+      card.style.textAlign = 'center';
+      card.style.color = '#00d1ff';
+      card.style.fontFamily = '"Press Start 2P", monospace';
+
+      const ico = document.createElement('div');
+      ico.textContent = '0';
+      ico.style.fontSize = '34px';
+      ico.style.marginBottom = '8px';
+      ico.style.color = '#ffffff';
+      card.appendChild(ico);
+
+      const hi = document.createElement('div');
+      hi.textContent = 'HI-SCORE: 0';
+      hi.style.marginBottom = '12px';
+      hi.style.fontSize = '12px';
+      card.appendChild(hi);
+
+      const retry = document.createElement('button');
+      retry.textContent = 'RETRY';
+      retry.style.margin = '6px';
+      retry.style.padding = '8px 14px';
+      retry.style.border = 'none';
+      retry.style.background = '#222';
+      retry.style.color = '#fff';
+      retry.style.borderRadius = '6px';
+      retry.style.cursor = 'pointer';
+      retry.addEventListener('click', () => {
+        hideOverlay();
+        if (typeof window.resetGame === 'function') window.resetGame();
+        if (typeof window.startGame === 'function') window.startGame();
+      });
+      card.appendChild(retry);
+
+      const close = document.createElement('button');
+      close.textContent = 'CLOSE';
+      close.style.margin = '6px';
+      close.style.padding = '8px 10px';
+      close.style.border = 'none';
+      close.style.background = '#444';
+      close.style.color = '#fff';
+      close.style.borderRadius = '6px';
+      close.style.cursor = 'pointer';
+      close.addEventListener('click', () => { hideOverlay(); });
+      card.appendChild(close);
+
+      ov.appendChild(card);
+      document.body.appendChild(ov);
+
+      // helper to set values
+      ov.__set = (score, hi) => {
+        ico.textContent = String(score || 0);
+        hi.textContent = 'HI-SCORE: ' + String(hi || score || 0);
+      };
+
+      // show / hide
+      ov.__show = () => { ov.style.pointerEvents = 'auto'; ov.style.visibility = 'visible'; ov.style.opacity = '1'; };
+      ov.__hide = () => { ov.style.pointerEvents = 'none'; ov.style.visibility = 'hidden'; ov.style.opacity = '0'; };
+
+      // start hidden
+      ov.__hide();
+    }
+
+    function showOverlay(score, hi){
+      createGameOverOverlay();
+      const ov = document.getElementById('custom-gameover');
+      if (!ov) return;
+      ov.__set(score, hi);
+      ov.__show();
+    }
+
+    function hideOverlay(){
+      const ov = document.getElementById('custom-gameover');
+      if (!ov) return;
+      ov.__hide();
+    }
+
+    // expose API for main.js to call when the player truly loses
+    window.__arcadeUI = window.__arcadeUI || {};
+    // ensure we do not overwrite other helpers
+    window.__arcadeUI.updateGameOverUI = function(score, hi){
+      // only show overlay when explicitly invoked
+      try { showOverlay(score, hi); } catch(e){ console.warn('UI: showOverlay failed', e); }
+    };
+
+    // also hide overlay when menu start/reset is clicked
     safeOn(menuStartBtn, 'click', () => {
-      // hide main menu immediately
+      // hide any overlays/menus first
+      hideOverlay();
       if (mainMenu){ mainMenu.classList.add('hidden'); mainMenu.style.display='none'; }
+      if (attractMenu){ attractMenu.classList.add('hidden'); attractMenu.style.display='none'; }
       const legacyMenu = document.getElementById('menu-overlay'); if (legacyMenu){ legacyMenu.classList.add('hidden'); legacyMenu.style.display='none'; }
-
-      // do NOT request fullscreen — instead fill browser viewport via responsive canvas
-      const canvas = document.getElementById('game-canvas');
-      if (canvas) try { canvas.focus(); } catch(e){}
-
-      if (attractMenu) { attractMenu.classList.remove('hidden'); window.addEventListener('keydown', onKeyNav); }
-
-      // start game (will resize canvas to fit container)
+      // attempt to start the game (will call window.startGame or dispatch requestStart)
       attemptStartGame();
     });
 
-    safeOn(menuHighBtn, 'click', ()=> alert('High scores — placeholder'));
-    safeOn(menuCreditsBtn, 'click', ()=> alert('Credits — built with Canvas + JS'));
-
-    safeOn(arcadeScreen, 'click', () => {
-      if (mainMenu && !mainMenu.classList.contains('hidden')) return;
-      if (!menuVisible) showMenu(); else activateMenu(menuIndex);
+    safeOn(resetBtn, 'click', () => {
+      hideOverlay();
+      if (typeof window.resetGame === 'function') {
+        try { window.resetGame(); console.info('UI: window.resetGame() called'); } catch(e){ console.warn('UI: resetGame threw', e); }
+      }
     });
-
-    window.addEventListener('keydown', (e) => {
-      if (mainMenu && !mainMenu.classList.contains('hidden') && (e.key==='Enter' || e.key===' ')) { menuStartBtn && menuStartBtn.click(); e.preventDefault(); return; }
-      if (e.key === 'Enter' || e.key === ' ') { if (!menuVisible) showMenu(); else activateMenu(menuIndex); }
-    });
-
-    safeOn(resetBtn, 'click', ()=> { if (typeof window.resetGame === 'function') window.resetGame(); if (typeof window.startGame === 'function') window.startGame(); hideAllOverlays(); });
-    safeOn(goRetry, 'click', ()=> { if (typeof window.resetGame === 'function') window.resetGame(); if (typeof window.startGame === 'function') window.startGame(); hideAllOverlays(); });
-
-    // expose update helper
-    function updateGameOverUI(score, hi){ if (goScore) goScore.textContent = String(score); if (hiScoreEl) hiScoreEl.textContent = String(hi || score); if (gameoverScreen) gameoverScreen.classList.remove('hidden'); }
-    window.__arcadeUI = { updateGameOverUI };
 
     // debug: missing elements
     const expected = ['menu-start','menu-highscores','menu-credits','reset-button','go-retry'];
